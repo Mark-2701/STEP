@@ -74,6 +74,53 @@ void Price::show() const {
 	}
 }
 
+void Price::_swap12() {
+	ListNode* tmp;
+	tmp = first->next;         // n2
+	first->next = tmp->next;   // n1->next = n3
+	tmp->next = first;         // n2->next = n1
+	first = tmp;
+}
+
+void Price::_swap23(ListNode* node) {
+	ListNode* tmp;
+	tmp = node->next;             // n2
+	node->next = tmp->next;       // n1->next = n3
+	tmp->next = tmp->next->next;  // n2->next = n4
+	node->next->next = tmp;       // n3->next = n2
+}
+
+void Price::show_by_price_descending() {
+	if (first == NULL) {
+		std::cout << "Price is empty" << std::endl;
+		return;
+	}
+	if (first->next == NULL) {
+		std::cout << first->product.to_string() << std::endl;
+		return;
+	}
+	bool is_ordered;
+	do {
+		is_ordered = true;
+		ListNode* node = first;
+		// окремо перевіряємо перші два
+		if (node->product.price < node->next->product.price) {
+			_swap12();
+			node = first;
+			is_ordered = false;
+		}
+		while (node->next->next) {
+			if (node->next->product.price < node->next->next->product.price) {
+				_swap23(node);
+				is_ordered = false;
+			}
+			node = node->next;
+		}
+	} while (!is_ordered);
+	// відображення передаємо на інший метод
+	show();
+}
+
 void Price::show_by_price_ascending() {
 	// сортування - переставляння неправильно впорядкованих елементів
 	// до тих пір, поки їх не стане (всі у правильному порядку)
@@ -85,6 +132,15 @@ void Price::show_by_price_ascending() {
 	* б) поміняти покажчики на вузли
 	*    [p1|n]---------->[p3|n]   - більш ефективна операція
 			 p4<-[p2|n]<------|
+
+		Для перших двох елементів:
+		f
+		[p1|n]->[p2|n]->[p3|n]
+
+		 ---->f
+			  [p2|n]
+		 <--------|
+		[p1|n]--------->[p3|n]
 	*/
 	// окремо обробляємо випадки, коли перелік порожній або в ньому один елемент
 	if (first == NULL) {
@@ -101,31 +157,29 @@ void Price::show_by_price_ascending() {
 		ListNode* node = first;
 		// окремо перевіряємо перші два
 		if (node->product.price > node->next->product.price) {
-			// f
-			// [p1|n]->[p2|n]->[p3|n]
-			//
-			//  ---->f  
-			//       [p2|n]
-			//  <--------|
-			// [p1|n]--------->[p3|n]
-			ListNode* tmp = first->next;
-			first->next = first->next->next;  // p1.next = p3 (p2.next)
-			first->next->next = first;        // p2.next = p1
-			node = first = tmp;               // ---->f 
+			_swap12();
+			node = first;
 			is_ordered = false;
 		}
 		while (node->next->next) {
-			ListNode* tmp = node->next;      // tmp = p2
 			if (node->next->product.price > node->next->next->product.price) {
-				// порядок неправильний - міняємо порядок
-				node->next = node->next->next;   // p1.next = p3
-				tmp->next = tmp->next->next;  // p2.next = p3.next
-				tmp->next->next = tmp;  // p3.next = p2
-				is_ordered = false;
+				_swap23(node);
 			}
-			node = tmp;  // переходимо до наступного
+			node = node->next;
 		}
 	} while (!is_ordered);
 	// відображення передаємо на інший метод
 	show();
 }
+
+/*
+Задача: реалізувати методи сортування та виведення
+за величиною знижки (discount)
+
+Д.З. До структури Product додати поле order, яке
+заповнювати послідовно при зчитуванні файлу.
+Розуміючи це поле як "популярність" товару додати
+пункт меню "за популярністю" (можна змінити п.3).
+
+Підготувати до захисту персональні проєкти
+*/
